@@ -1,10 +1,47 @@
-py only
+[py only]
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName('demo').getOrCreate()
+a = [(1,'sam'),(2,'eam'),(3,'ram'),(4,'jam')]
+b = ['id','name']
+
+df = spark.createDataFrame(a,b)
+
+df.display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-sql only
+[sql only]
+
+%sql
+create or replace temporary view demo as
+select 1 as id, 'sam' as name union
+select 2 as id, 'ram' as name union
+select 3 as id, 'fam' as name union
+select 4 as id, 'jam' as name;
+
+select * from demo;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-python and sql
+[python and sql]
+
+from pyspark.sql.functions import col
+a = [(1,'sam'),(2,'ram'),(3,'fam')]
+b = ['id','name']
+
+df = spark.createDataFrame(a,b)
+
+df.createOrReplaceTempView('demo')
+
+%sql
+
+select * from demo;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-read a csv
+[read a csv]
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+df = spark.read.option('header',True).option('inferSchema',True).csv('/Volumes/workspace/learningfiles/veh_data/car_prices.csv')
+
+df.display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1
+[]
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
