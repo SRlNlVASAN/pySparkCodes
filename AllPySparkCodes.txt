@@ -43,5 +43,35 @@ df = spark.read.option('header',True).option('inferSchema',True).csv('/Volumes/w
 
 df.display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[use withColumn for alter column and concat]
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+df = spark.read.option('header','true').option('inferSchema','true').csv('/Volumes/workspace/learningfiles/veh_data/borewellVehData.csv')
+
+df.display()
+
+# for create new col
+from pyspark.sql.functions import col,lit,concat_ws
+df2 = df.withColumn('addLatLon',col('lat') + col('lon'))
+
+df2.display()
+
+# modify in existing col
+
+df3 = df2.withColumn('addLatLon',col('addLatLon') - 50)
+
+df3.display()
+
+#concat two col in pyspark
+
+df3 = df3.withColumn('newlatlon',concat_ws('',col('lat'),col('lon')))
+
+
+df3.display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[]
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
