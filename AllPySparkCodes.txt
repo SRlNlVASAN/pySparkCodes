@@ -132,11 +132,64 @@ df = spark.createDataFrame(a,b)
 
 df.display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[for using filter in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName("demo").getOrCreate()
+
+a  = [
+    ('ORD1001','karan',['mouse','keyboard','monitor']),
+    ('ORD1002','meena',['laptop','bag']),
+    ('ORD1003','john',['charger','usb cable']),
+    ('ORD1004',None,[]),
+    ('ORD1005','raj',['mouse','laptop','pen drive'])
+]
+
+b = StructType([
+    StructField('OrderID',StringType(),True)
+    ,StructField('CustomerName',StringType(),True)
+    ,StructField('Products',ArrayType(StringType()),True)
+
+])
+
+df = spark.createDataFrame(a,b)
+
+#single filter
+#df.filter((df.OrderID == 'ORD1001').display()
+          
+#multi filter
+df.filter((df.OrderID == 'ORD1002') | (df.CustomerName == 'karan')).show()
+
+#is null and is not null
+df.filter(df.CustomerName.isNull()).display()
+
+#startswith, endswith and contains
+
+df.filter(df.CustomerName.startswith('m')).display()
+print('-------')
+df.filter(df.CustomerName.endswith('n')).display()
+print('-------')
+df.filter(df.CustomerName.contains('aj')).display()
+
+# to get a particular list inside a filter
+order_failure = ['ORD1004','ORD1005']
+df.filter(df.OrderID.isin(order_failure)).show()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[for withcolumn rename()]
+
+# withcolumnrename
+
+df = spark.read.option('header','true').option('inferschema','true').csv('/Volumes/workspace/learningfiles/veh_data/borewellVehData.csv')
+
+#column rename (here multiple)
+df.withColumnRenamed('id','Table_id')\
+    .withColumnRenamed('device_id','did')\
+    .limit(5)\
+    .display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[distinct nd drop druplicates in pyspark]
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
