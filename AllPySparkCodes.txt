@@ -190,14 +190,133 @@ df.withColumnRenamed('id','Table_id')\
     .display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 [distinct nd drop druplicates in pyspark]
+
+from pyspark.sql import SparkSession
+
+a = [
+    (1,'alice',25,'chennai'),
+    (2,'bob',30,'mumbai'),
+    (3,'alice',25,'chennai'),
+    (4,'david',40,'delhi'),
+    (5,'eve',None,'chennai'),
+    (6,'frank',30,None),
+    (6,'frank',30,None)
+]
+
+b = StructType([
+    StructField('id',IntegerType(),True),
+    StructField('name',StringType(),True),
+    StructField('age',IntegerType(),True),
+    StructField('city',StringType(),True)
+])
+
+
+df = spark.createDataFrame(a,b)
+
+df.display() # have all data
+
+df.distinct().display() # have all data
+
+df2 = df.dropDuplicates().display() # have all data
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[sort and orderby]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import *
+from pyspark.sql import functions
+from pyspark.sql.functions import col
+
+a = [
+    (1,'alice',25,'chennai'),
+    (2,'bob',30,'mumbai'),
+    (3,'alice',25,'chennai'),
+    (4,'david',40,'delhi'),
+    (5,'eve',None,'chennai'),
+    (6,'frank',30,None),
+    (6,'frank',30,None)
+]
+
+b = StructType([
+    StructField('id',IntegerType(),True),
+    StructField('name',StringType(),True),
+    StructField('age',IntegerType(),True),
+    StructField('city',StringType(),True)
+])
+
+
+df = spark.createDataFrame(a,b)
+
+df.display() #nrml
+
+df.orderBy("name").display() #orderby for shorting
+
+df.orderBy(col("name").desc()).display() #same ordering but in desc order
+
+df.sort('city').display() #sort for shorting
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[groupby in pyspark]
+
+from pyspark.sql.functions import *
+
+df = spark.read.option("header", "true").option("inferSchema", "true").csv('/Volumes/workspace/learningfiles/veh_data/car_prices.csv')
+
+df.display()
+
+#sum
+df.groupBy('year').sum('sellingprice').display()
+#min/max
+df.groupBy('year').max('sellingprice').display()
+#avg
+df.groupBy('year','make').avg('sellingprice').display()
+#mean
+df.groupBy('year').mean('sellingprice').display() #mean avg same
+#count
+df.groupBy('year').count().display()
+
+#to perform all aggrecate function in one block
+
+df1 = df.groupby('year').agg(count('sellingprice'),avg('sellingprice'),max('sellingprice'),min('sellingprice'),sum('sellingprice'))
+
+df1.orderBy(desc('year')).display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[union and union all]
+
+from pyspark.sql.functions import *
+
+a = [(1,'sam',20),(2,'bob',25),(3,'amy',30)]
+
+b = ['id','name','age']
+
+df = spark.createDataFrame(a,b)
+
+c = [(4,'fam',20),(5,'buub',25),(3,'amy',30)]
+
+d = ['id','name','age']
+
+df = spark.createDataFrame(a,b)
+df1 = spark.createDataFrame(c,d)
+
+df.union(df1).display() #union unionall same
+df.union(df1).dropDuplicates().display() #if want to remove dublicates
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[unionbyname]
+
+from pyspark.sql.functions import *
+
+a = [(1,'sam',20),(2,'bob',25),(3,'amy',30)]
+b = ['id','name','age']
+df = spark.createDataFrame(a,b)
+
+c = [('fam',4,20,'che'),('sam',5,20,'che'),('bob',6,25,'mdu')]
+d = ['name','id','age','city']
+
+df = spark.createDataFrame(a,b)
+df1 = spark.createDataFrame(c,d)
+
+display(df)
+display(df1)
+
+df.unionByName(df1, allowMissingColumns=True).display() #using this we can union 2 tables even with difference structures
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
