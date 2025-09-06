@@ -386,11 +386,60 @@ df = spark.createDataFrame(a,b)
 df2 = df.groupBy("month").pivot('product').sum('revenue')
 df2.display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[windows - row number]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.window import *
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+df = spark.read.csv('/Volumes/workspace/learningfiles/veh_data/car_prices.csv',header=True,inferSchema=True)
+
+a = Window.partitionBy('make').orderBy(desc('sellingprice'))
+
+b = df.withColumn('row_number',row_number().over(a))
+
+b.filter(b['row_number'] == 1).display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[window - rank and dense rank]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.window import *
+from pyspark.sql.types import *
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('honda','shine',75000),
+    ('honda','activa 6g',75000),
+    ('honda','unicon',80000),
+    ('honda','hornet',73000),
+    ('hero','passion pro',74000),
+    ('hero','splinder',74000),
+    ('hero','xtream',73000),
+    ('tvs','apache rtr',85000),
+    ('tvs','jupter',85000),
+    ('tvs','natqge',85000),
+    ]
+
+b = StructType([
+    StructField('brand',StringType(),True),
+    StructField('model',StringType(),True),
+    StructField('salesamount',IntegerType(),True)
+    ])
+
+
+df = spark.createDataFrame(a,b)
+
+a = Window.partitionBy('brand').orderBy(desc('salesamount'))
+
+#rankk = df.withColumn('rank',dense_rank().over(a))
+rankk = df.withColumn('rank',rank().over(a))
+display(rankk)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[lead and lag]
+
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
