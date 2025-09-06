@@ -339,9 +339,52 @@ df.dropna().display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 [when() and otherwise()]
 
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+spark = SparkSession.builder.appName("Spark DataFrames").getOrCreate()
 
+a = [(1,'allen','M',None,4000),
+     (2,'robet','M',2000,4000),
+     (3,'roshini','F',3000,7000),
+     (4,'maran','M',5000,9000)
+     ]
+
+b = ['id','name','gender','salary','yearsales']
+
+df = spark.createDataFrame(a,b)
+
+#convert m to male
+#use withcolumn for alter a column
+
+#use new col name to create a extra column
+
+df1 = df.withColumn('gender-new',when(df.gender == 'M',"Male")\
+    .when(df.gender == 'F',"Female")\
+        .otherwise(df.gender))
+
+
+df1 = df1.withColumn('salary',when(df.salary.isNull(),2000)
+                     .otherwise(df.salary))
+
+display(df1)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[pivot() in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+spark = SparkSession.builder.appName("Spark DataFrames").getOrCreate()
+
+a = [('jan','apple',100),
+     ('jan','banana',150),
+     ('feb','apple',200),
+     ('feb','banana',250)]
+
+b = ['month','product','revenue']
+
+df = spark.createDataFrame(a,b)
+
+df2 = df.groupBy("month").pivot('product').sum('revenue')
+df2.display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
