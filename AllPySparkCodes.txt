@@ -667,7 +667,19 @@ df1.select("flightName",'newRoute','newTime').display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 [Read and Write CSV File in PySpark]
 
+from pyspark.sql import SparkSession
 
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+df = spark.read.option('header',True).option('inferSchema',True).csv('/Volumes/workspace/learningfiles/veh_data/person.csv')
+
+df.display()
+
+df1 = df.withColumn('email',concat('Name',lit('@'),'Industry'))
+
+display(df1)
+
+df1.write.option('header',True).option('inferSchema',True).csv('/Volumes/workspace/learningfiles/veh_data/newPerson.csv')
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
