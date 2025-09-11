@@ -501,11 +501,122 @@ newdf = df.withColumn('newDevlieryDate',date_add('deliverydate',3))
 
 display(newdf)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[expr in pyspark] to use sql in pyspark
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('laptop',55000,2),
+    ('laptop',20000,5),
+    ('laptop',2500,4)
+]
+
+b = ['product','price','quantity']
+
+df = spark.createDataFrame(a,b)
+
+display(df)
+
+#using sql in pyspark
+df1 = df.withColumn('totAmount',expr('price*quantity').cast('int'))\
+    .withColumn('check',expr('''case when price > 5000 then 'huge' else 'small' end'''))
+display(df1)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[split function]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('vijaya lakxmi'),
+    ('vignesan saravanan'),
+    ('manoj sundar'),
+    ('arun babu')
+]
+
+b = ['name']
+
+df = spark.createDataFrame(a,b)
+
+display(df)
+
+df1 = df.withColumn('firstName',split('name',' ').getItem(0))\
+    .withColumn('lastName',split('name',' ').getItem(1))
+display(df1)
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('testuser1@dummyemail.com'),
+('practice.code@example.net'),
+('rando.person@fakemail.org'),
+('user42@testdomain.com'),
+('coding.test@notreal.co'),
+('dev.email@practicetest.net'),
+('sample.user@dummy.io'),
+('hello.world@testmail.com'),
+('dummy.account@example.net'),
+('user.number.ten@fakedomain.org')
+]
+
+b = ['email']
+
+df = spark.createDataFrame(a,b)
+
+display(df)
+
+df1 = df.withColumn('username',split('email','@').getItem(0))\
+    .withColumn('site',split('email','@').getItem(1))
+
+df1.display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[]
+[inner join in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    (1,'karan','chennai'),
+    (2,'meena','bengalure'),
+    (3,'arun','hyderabad'),
+    (4,'divya','mumbai')
+]
+
+b = ['customerid','name','city']
+
+df = spark.createDataFrame(a,b)
+
+a1 = [
+    (101,1,'laptop',1),
+    (102,2,'mobile phone',2),
+    (103,1,'mouse',3),
+    (104,5,'headphones',1)
+]
+
+b1 = ['orderdi','customerid','product','quantity']
+
+df1 = spark.createDataFrame(a1,b1)
+
+display(df)
+display(df1)
+
+df3 = df.join(df1,on='customerid',how="inner") #inner join
+
+display(df3)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
