@@ -618,6 +618,57 @@ df3 = df.join(df1,on='customerid',how="inner") #inner join
 
 display(df3)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[left and right joins]
+
+df3 = df.join(df1,on='customerid',how="inner") #inner join
+
+df4 = df.join(df1,on='customerid',how="left") #left join
+
+df5 = df.join(df1,on='customerid',how='right') #right join
+
+display(df5)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[semi and anti join]
+
+#left semi
+
+df2 = df.join(df1,on="customerid",how='leftsemi')
+
+#left anti
+
+df3 = df.join(df1,on="customerid",how='leftanti')
+
+display(df3)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[array inbuild function in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+
+spark = SparkSession.builder.appName("demo").getOrCreate()
+
+a = [
+    ('airIndia',['che','de'],['09:00','11:30']),
+    ('indigo',['bg','mu'],['09:00','11:30']),
+    ('emrites',['hy','ko'],['09:00','11:30']),
+]
+
+b = ['flightName','route','timeList']
+
+df = spark.createDataFrame(a,b)
+
+df.display()
+
+# more like casssidian join , every data with each and another data
+df1 = df.withColumn('newRoute',explode('route'))\
+    .withColumn('newTime',explode('timelist'))
+
+df1.select("flightName",'newRoute','newTime').display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[Read and Write CSV File in PySpark]
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
