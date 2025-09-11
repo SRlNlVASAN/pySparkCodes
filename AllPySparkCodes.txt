@@ -43,5 +43,635 @@ df = spark.read.option('header',True).option('inferSchema',True).csv('/Volumes/w
 
 df.display()
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[use withColumn for alter column and concat]
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+df = spark.read.option('header','true').option('inferSchema','true').csv('/Volumes/workspace/learningfiles/veh_data/borewellVehData.csv')
+
+df.display()
+
+# for create new col
+from pyspark.sql.functions import col,lit,concat_ws
+df2 = df.withColumn('addLatLon',col('lat') + col('lon'))
+
+df2.display()
+
+# modify in existing col
+
+df3 = df2.withColumn('addLatLon',col('addLatLon') - 50)
+
+df3.display()
+
+#concat two col in pyspark
+
+df3 = df3.withColumn('newlatlon',concat_ws('',col('lat'),col('lon')))
+
+
+df3.display()
+
+#to read col based on list
+
+df = spark.read.option('header',True).option('inferSchema',True).csv('/Volumes/workspace/learningfiles/veh_data/borewellVehData.csv')
+
+colm = [col for col in df.columns]
+
+df.select(*colm).display()
+
+#to read col in index values
+
+df = spark.read.option('header',True).option('inferSchema',True).csv('/Volumes/workspace/learningfiles/veh_data/borewellVehData.csv')
+
+#df.select(df.columns[0:3]).display()
+
+# for selecting all columns
+df.select(df.columns).display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[to create datatype manually]
+
+from pyspark.sql.types import StructType,StructField, StringType, IntegerType
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("demo").getOrCreate()
+
+a = [
+    (1,'ram',20),
+     (2,'jam',30),
+     (3,'kam',20)
+     ]
+
+b = StructType([
+    StructField('id',IntegerType(),True),
+    StructField('name',StringType(),True),
+    StructField('age',IntegerType(),True),
+])
+
+df = spark.createDataFrame(a,b)
+
+df.display()
+
+[NESTED datatype creating]
+
+from pyspark.sql.types import StructType,StructField, StringType, IntegerType,ArrayType
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("demo").getOrCreate()
+
+a = [(1,[{'firstname':'babu','lastname':'sam'}])]
+
+b = StructType([
+    StructField('id',IntegerType(),True),
+    StructField('name',ArrayType(StructType([
+        StructField('firstname',StringType(),True),
+        StructField('lastname',StringType(),True)
+    ])),True)
+])  
+
+df = spark.createDataFrame(a,b)
+
+df.display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[for using filter in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName("demo").getOrCreate()
+
+a  = [
+    ('ORD1001','karan',['mouse','keyboard','monitor']),
+    ('ORD1002','meena',['laptop','bag']),
+    ('ORD1003','john',['charger','usb cable']),
+    ('ORD1004',None,[]),
+    ('ORD1005','raj',['mouse','laptop','pen drive'])
+]
+
+b = StructType([
+    StructField('OrderID',StringType(),True)
+    ,StructField('CustomerName',StringType(),True)
+    ,StructField('Products',ArrayType(StringType()),True)
+
+])
+
+df = spark.createDataFrame(a,b)
+
+#single filter
+#df.filter((df.OrderID == 'ORD1001').display()
+          
+#multi filter
+df.filter((df.OrderID == 'ORD1002') | (df.CustomerName == 'karan')).show()
+
+#is null and is not null
+df.filter(df.CustomerName.isNull()).display()
+
+#startswith, endswith and contains
+
+df.filter(df.CustomerName.startswith('m')).display()
+print('-------')
+df.filter(df.CustomerName.endswith('n')).display()
+print('-------')
+df.filter(df.CustomerName.contains('aj')).display()
+
+# to get a particular list inside a filter
+order_failure = ['ORD1004','ORD1005']
+df.filter(df.OrderID.isin(order_failure)).show()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[for withcolumn rename()]
+
+# withcolumnrename
+
+df = spark.read.option('header','true').option('inferschema','true').csv('/Volumes/workspace/learningfiles/veh_data/borewellVehData.csv')
+
+#column rename (here multiple)
+df.withColumnRenamed('id','Table_id')\
+    .withColumnRenamed('device_id','did')\
+    .limit(5)\
+    .display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[distinct nd drop druplicates in pyspark]
+
+from pyspark.sql import SparkSession
+
+a = [
+    (1,'alice',25,'chennai'),
+    (2,'bob',30,'mumbai'),
+    (3,'alice',25,'chennai'),
+    (4,'david',40,'delhi'),
+    (5,'eve',None,'chennai'),
+    (6,'frank',30,None),
+    (6,'frank',30,None)
+]
+
+b = StructType([
+    StructField('id',IntegerType(),True),
+    StructField('name',StringType(),True),
+    StructField('age',IntegerType(),True),
+    StructField('city',StringType(),True)
+])
+
+
+df = spark.createDataFrame(a,b)
+
+df.display() # have all data
+
+df.distinct().display() # have all data
+
+df2 = df.dropDuplicates().display() # have all data
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[sort and orderby]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import *
+from pyspark.sql import functions
+from pyspark.sql.functions import col
+
+a = [
+    (1,'alice',25,'chennai'),
+    (2,'bob',30,'mumbai'),
+    (3,'alice',25,'chennai'),
+    (4,'david',40,'delhi'),
+    (5,'eve',None,'chennai'),
+    (6,'frank',30,None),
+    (6,'frank',30,None)
+]
+
+b = StructType([
+    StructField('id',IntegerType(),True),
+    StructField('name',StringType(),True),
+    StructField('age',IntegerType(),True),
+    StructField('city',StringType(),True)
+])
+
+
+df = spark.createDataFrame(a,b)
+
+df.display() #nrml
+
+df.orderBy("name").display() #orderby for shorting
+
+df.orderBy(col("name").desc()).display() #same ordering but in desc order
+
+df.sort('city').display() #sort for shorting
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[groupby in pyspark]
+
+from pyspark.sql.functions import *
+
+df = spark.read.option("header", "true").option("inferSchema", "true").csv('/Volumes/workspace/learningfiles/veh_data/car_prices.csv')
+
+df.display()
+
+#sum
+df.groupBy('year').sum('sellingprice').display()
+#min/max
+df.groupBy('year').max('sellingprice').display()
+#avg
+df.groupBy('year','make').avg('sellingprice').display()
+#mean
+df.groupBy('year').mean('sellingprice').display() #mean avg same
+#count
+df.groupBy('year').count().display()
+
+#to perform all aggrecate function in one block
+
+df1 = df.groupby('year').agg(count('sellingprice'),avg('sellingprice'),max('sellingprice'),min('sellingprice'),sum('sellingprice'))
+
+df1.orderBy(desc('year')).display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[union and union all]
+
+from pyspark.sql.functions import *
+
+a = [(1,'sam',20),(2,'bob',25),(3,'amy',30)]
+
+b = ['id','name','age']
+
+df = spark.createDataFrame(a,b)
+
+c = [(4,'fam',20),(5,'buub',25),(3,'amy',30)]
+
+d = ['id','name','age']
+
+df = spark.createDataFrame(a,b)
+df1 = spark.createDataFrame(c,d)
+
+df.union(df1).display() #union unionall same
+df.union(df1).dropDuplicates().display() #if want to remove dublicates
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[unionbyname]
+
+from pyspark.sql.functions import *
+
+a = [(1,'sam',20),(2,'bob',25),(3,'amy',30)]
+b = ['id','name','age']
+df = spark.createDataFrame(a,b)
+
+c = [('fam',4,20,'che'),('sam',5,20,'che'),('bob',6,25,'mdu')]
+d = ['name','id','age','city']
+
+df = spark.createDataFrame(a,b)
+df1 = spark.createDataFrame(c,d)
+
+display(df)
+display(df1)
+
+df.unionByName(df1, allowMissingColumns=True).display() #using this we can union 2 tables even with difference structures
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[dropna and fillna]
+
+from pyspark.sql.functions import *
+
+a = [(1,'alice',None),
+     (2,None,2000),
+     (3,'charlie',3000),
+     (4,None,None)]
+     
+b = ['id','name','salary']
+
+df = spark.createDataFrame(a,b)
+
+#fillna
+#df2 = df.fillna(value= 10,subset=['salary'])
+
+#dropna
+df.dropna().display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[when() and otherwise()]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+spark = SparkSession.builder.appName("Spark DataFrames").getOrCreate()
+
+a = [(1,'allen','M',None,4000),
+     (2,'robet','M',2000,4000),
+     (3,'roshini','F',3000,7000),
+     (4,'maran','M',5000,9000)
+     ]
+
+b = ['id','name','gender','salary','yearsales']
+
+df = spark.createDataFrame(a,b)
+
+#convert m to male
+#use withcolumn for alter a column
+
+#use new col name to create a extra column
+
+df1 = df.withColumn('gender-new',when(df.gender == 'M',"Male")\
+    .when(df.gender == 'F',"Female")\
+        .otherwise(df.gender))
+
+
+df1 = df1.withColumn('salary',when(df.salary.isNull(),2000)
+                     .otherwise(df.salary))
+
+display(df1)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[pivot() in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+spark = SparkSession.builder.appName("Spark DataFrames").getOrCreate()
+
+a = [('jan','apple',100),
+     ('jan','banana',150),
+     ('feb','apple',200),
+     ('feb','banana',250)]
+
+b = ['month','product','revenue']
+
+df = spark.createDataFrame(a,b)
+
+df2 = df.groupBy("month").pivot('product').sum('revenue')
+df2.display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[windows - row number]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.window import *
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+df = spark.read.csv('/Volumes/workspace/learningfiles/veh_data/car_prices.csv',header=True,inferSchema=True)
+
+a = Window.partitionBy('make').orderBy(desc('sellingprice'))
+
+b = df.withColumn('row_number',row_number().over(a))
+
+b.filter(b['row_number'] == 1).display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[window - rank and dense rank]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.window import *
+from pyspark.sql.types import *
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('honda','shine',75000),
+    ('honda','activa 6g',75000),
+    ('honda','unicon',80000),
+    ('honda','hornet',73000),
+    ('hero','passion pro',74000),
+    ('hero','splinder',74000),
+    ('hero','xtream',73000),
+    ('tvs','apache rtr',85000),
+    ('tvs','jupter',85000),
+    ('tvs','natqge',85000),
+    ]
+
+b = StructType([
+    StructField('brand',StringType(),True),
+    StructField('model',StringType(),True),
+    StructField('salesamount',IntegerType(),True)
+    ])
+
+
+df = spark.createDataFrame(a,b)
+
+a = Window.partitionBy('brand').orderBy(desc('salesamount'))
+
+#rankk = df.withColumn('rank',dense_rank().over(a))
+rankk = df.withColumn('rank',rank().over(a))
+display(rankk)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[lead and lag]
+
+window = Window.partitionBy('salesamount').orderBy('salesamount')
+
+#lg = df.withColumn('lag',lag('salesamount',1).over(window))
+
+lg = df.withColumn('lead',lead('salesamount',1).over(window))
+
+display(lg)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[cummulative sales]
+
+#window = Window.partitionBy('brand').orderBy('salesamount')
+#nt = df.withColumn('ntile',ntile(3).over(window))
+#nt.filter(col('ntile')==3).display()
+
+window = Window.partitionBy('brand').orderBy('salesamount').rowsBetween(Window.unboundedPreceding,Window.currentRow)
+su = df.withColumn('sum',sum('salesamount').over(window))
+
+display(su)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[date function in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('b001','arjun','2024-01-05','2024-01-08'),
+    ('b002','meena','2024-01-07','2024-01-10'),
+    ('b003','ravi','2024-01-10','2024-01-15'),
+    ('b004','suma','2024-01-12','2024-01-13'),
+    ('b005','karan','2024-01-15','2024-01-20'),
+]
+
+b = ['orderid','customername','purchasedate','deliverydate']
+
+df = spark.createDataFrame(a,b)
+
+display(df)
+
+#datediff
+#ddif = df.withColumn('delivery_in',datediff('deliverydate','purchasedate'))
+
+#dateformate
+#ddif = df.withColumn('dateformat',date_format('purchasedate','MM-dd-yyyy'))
+
+ddif.display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[today and months between]
+
+to = df.withColumn('today',current_date())
+
+cur = to.withColumn('monthsBetween',months_between('today','deliverydate'))
+
+#using concat
+#new_df = cur.withColumn('delivered_before',concat(datediff('today','deliverydate').cast('string'),lit(' days')))
+
+#add date 
+newdf = df.withColumn('newDevlieryDate',date_add('deliverydate',3))
+
+display(newdf)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[expr in pyspark] to use sql in pyspark
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('laptop',55000,2),
+    ('laptop',20000,5),
+    ('laptop',2500,4)
+]
+
+b = ['product','price','quantity']
+
+df = spark.createDataFrame(a,b)
+
+display(df)
+
+#using sql in pyspark
+df1 = df.withColumn('totAmount',expr('price*quantity').cast('int'))\
+    .withColumn('check',expr('''case when price > 5000 then 'huge' else 'small' end'''))
+display(df1)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[split function]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('vijaya lakxmi'),
+    ('vignesan saravanan'),
+    ('manoj sundar'),
+    ('arun babu')
+]
+
+b = ['name']
+
+df = spark.createDataFrame(a,b)
+
+display(df)
+
+df1 = df.withColumn('firstName',split('name',' ').getItem(0))\
+    .withColumn('lastName',split('name',' ').getItem(1))
+display(df1)
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('testuser1@dummyemail.com'),
+('practice.code@example.net'),
+('rando.person@fakemail.org'),
+('user42@testdomain.com'),
+('coding.test@notreal.co'),
+('dev.email@practicetest.net'),
+('sample.user@dummy.io'),
+('hello.world@testmail.com'),
+('dummy.account@example.net'),
+('user.number.ten@fakedomain.org')
+]
+
+b = ['email']
+
+df = spark.createDataFrame(a,b)
+
+display(df)
+
+df1 = df.withColumn('username',split('email','@').getItem(0))\
+    .withColumn('site',split('email','@').getItem(1))
+
+df1.display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[inner join in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    (1,'karan','chennai'),
+    (2,'meena','bengalure'),
+    (3,'arun','hyderabad'),
+    (4,'divya','mumbai')
+]
+
+b = ['customerid','name','city']
+
+df = spark.createDataFrame(a,b)
+
+a1 = [
+    (101,1,'laptop',1),
+    (102,2,'mobile phone',2),
+    (103,1,'mouse',3),
+    (104,5,'headphones',1)
+]
+
+b1 = ['orderdi','customerid','product','quantity']
+
+df1 = spark.createDataFrame(a1,b1)
+
+display(df)
+display(df1)
+
+df3 = df.join(df1,on='customerid',how="inner") #inner join
+
+display(df3)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[left and right joins]
+
+df3 = df.join(df1,on='customerid',how="inner") #inner join
+
+df4 = df.join(df1,on='customerid',how="left") #left join
+
+df5 = df.join(df1,on='customerid',how='right') #right join
+
+display(df5)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[semi and anti join]
+
+#left semi
+
+df2 = df.join(df1,on="customerid",how='leftsemi')
+
+#left anti
+
+df3 = df.join(df1,on="customerid",how='leftanti')
+
+display(df3)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[array inbuild function in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+
+spark = SparkSession.builder.appName("demo").getOrCreate()
+
+a = [
+    ('airIndia',['che','de'],['09:00','11:30']),
+    ('indigo',['bg','mu'],['09:00','11:30']),
+    ('emrites',['hy','ko'],['09:00','11:30']),
+]
+
+b = ['flightName','route','timeList']
+
+df = spark.createDataFrame(a,b)
+
+df.display()
+
+# more like casssidian join , every data with each and another data
+df1 = df.withColumn('newRoute',explode('route'))\
+    .withColumn('newTime',explode('timelist'))
+
+df1.select("flightName",'newRoute','newTime').display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[Read and Write CSV File in PySpark]
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[]
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[]
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
