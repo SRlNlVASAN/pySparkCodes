@@ -439,7 +439,73 @@ display(rankk)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 [lead and lag]
 
+window = Window.partitionBy('salesamount').orderBy('salesamount')
 
+#lg = df.withColumn('lag',lag('salesamount',1).over(window))
+
+lg = df.withColumn('lead',lead('salesamount',1).over(window))
+
+display(lg)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[cummulative sales]
+
+#window = Window.partitionBy('brand').orderBy('salesamount')
+#nt = df.withColumn('ntile',ntile(3).over(window))
+#nt.filter(col('ntile')==3).display()
+
+window = Window.partitionBy('brand').orderBy('salesamount').rowsBetween(Window.unboundedPreceding,Window.currentRow)
+su = df.withColumn('sum',sum('salesamount').over(window))
+
+display(su)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[date function in pyspark]
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+
+spark = SparkSession.builder.appName('demo').getOrCreate()
+
+a = [
+    ('b001','arjun','2024-01-05','2024-01-08'),
+    ('b002','meena','2024-01-07','2024-01-10'),
+    ('b003','ravi','2024-01-10','2024-01-15'),
+    ('b004','suma','2024-01-12','2024-01-13'),
+    ('b005','karan','2024-01-15','2024-01-20'),
+]
+
+b = ['orderid','customername','purchasedate','deliverydate']
+
+df = spark.createDataFrame(a,b)
+
+display(df)
+
+#datediff
+#ddif = df.withColumn('delivery_in',datediff('deliverydate','purchasedate'))
+
+#dateformate
+#ddif = df.withColumn('dateformat',date_format('purchasedate','MM-dd-yyyy'))
+
+ddif.display()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[today and months between]
+
+to = df.withColumn('today',current_date())
+
+cur = to.withColumn('monthsBetween',months_between('today','deliverydate'))
+
+#using concat
+#new_df = cur.withColumn('delivered_before',concat(datediff('today','deliverydate').cast('string'),lit(' days')))
+
+#add date 
+newdf = df.withColumn('newDevlieryDate',date_add('deliverydate',3))
+
+display(newdf)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[]
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[]
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[]
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 []
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
